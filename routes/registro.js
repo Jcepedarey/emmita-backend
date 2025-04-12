@@ -4,13 +4,14 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const pool = require("../db");
+require("dotenv").config(); // ✅ Asegura que las variables de entorno estén disponibles
 
 // Configura tu correo (usa variables de entorno en producción)
 const transporter = nodemailer.createTransport({
   service: "hotmail",
   auth: {
     user: "alquileresemmita@hotmail.com",
-    pass: "tu_contraseña_de_correo", // ⚠️ Usa un token seguro si es posible
+    pass: process.env.HOTMAIL_PASSWORD, // ✅ Variable segura
   },
 });
 
@@ -28,11 +29,13 @@ router.post("/solicitar", async (req, res) => {
   const codigo = Math.floor(100000 + Math.random() * 900000).toString(); // Código de 6 dígitos
 
   try {
+    // Insertar solicitud en Supabase
     await pool.query(`
       INSERT INTO solicitudes_usuarios (id, nombre, identificacion, usuario, correo, password, codigo)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
     `, [uuidv4(), nombre, identificacion, usuario, correo, password, codigo]);
 
+    // Enviar correo con el código
     await transporter.sendMail({
       from: "alquileresemmita@hotmail.com",
       to: "alquileresemmita@hotmail.com",
@@ -48,9 +51,13 @@ Ingresa este código en el sistema para aprobar el acceso.`,
     });
 
     res.json({ mensaje: "Solicitud enviada correctamente. Espera autorización por correo." });
+
   } catch (err) {
-    console.error("Error al registrar solicitud:", err);
-    res.status(500).json({ error: "Error interno al procesar la solicitud." });
+    console.error("❌ Error al registrar solicitud:", err); // ✅ Log real en consola
+    res.status(500).json({
+      error: "Error interno al procesar la solicitud.",
+      detalle: err.message, // ✅ Mostrar mensaje real del error
+    });
   }
 });
 
