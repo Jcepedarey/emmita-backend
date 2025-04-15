@@ -27,20 +27,29 @@ router.post("/crear", async (req, res) => {
   }
 });
 
-// ✅ Login
+// ✅ Login corregido con validación de datos
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const result = await pool.query("SELECT * FROM usuarios WHERE email = $1", [email]);
-  const usuario = result.rows[0];
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email y contraseña son requeridos" });
+  }
 
-  if (!usuario) return res.status(400).json({ error: "Usuario no encontrado" });
+  try {
+    const result = await pool.query("SELECT * FROM usuarios WHERE email = $1", [email]);
+    const usuario = result.rows[0];
 
-  const valid = await bcrypt.compare(password, usuario.password);
-  if (!valid) return res.status(400).json({ error: "Contraseña incorrecta" });
+    if (!usuario) return res.status(400).json({ error: "Usuario no encontrado" });
 
-  const { password: _, ...usuarioSeguro } = usuario;
-  res.json(usuarioSeguro);
+    const valid = await bcrypt.compare(password, usuario.password);
+    if (!valid) return res.status(400).json({ error: "Contraseña incorrecta" });
+
+    const { password: _, ...usuarioSeguro } = usuario;
+    res.json(usuarioSeguro);
+  } catch (err) {
+    console.error("Error en login:", err);
+    res.status(500).json({ error: "Error interno en el servidor" });
+  }
 });
 
 // ✅ Cambiar contraseña
