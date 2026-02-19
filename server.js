@@ -11,7 +11,11 @@ app.set("trust proxy", 1); // ✅ para que el rate-limit identifique bien la IP 
 
 // ✅ Middleware CORS para permitir acceso solo desde tu frontend
 app.use(cors({
-  origin: "https://emmita-frontend.vercel.app",
+  origin: [
+    "https://swalquiler.com",
+    "https://www.swalquiler.com",
+    "https://emmita-frontend.vercel.app"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 }));
