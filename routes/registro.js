@@ -82,8 +82,19 @@ router.post("/", async (req, res) => {
   if (usuario.email.trim().length > LIMITES.email) {
     return res.status(400).json({ error: `Email: máximo ${LIMITES.email} caracteres` });
   }
-  if (usuario.password.length < LIMITES.password_min) {
-    return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+   // Validar contraseña segura
+  const pass = usuario.password;
+  if (pass.length < 8) {
+    return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
+  }
+  if (!/[A-Z]/.test(pass)) {
+    return res.status(400).json({ error: "La contraseña debe incluir al menos una letra mayúscula" });
+  }
+  if (!/[a-z]/.test(pass)) {
+    return res.status(400).json({ error: "La contraseña debe incluir al menos una letra minúscula" });
+  }
+  if (!/[0-9]/.test(pass)) {
+    return res.status(400).json({ error: "La contraseña debe incluir al menos un número" });
   }
   if (usuario.password.length > LIMITES.password_max) {
     return res.status(400).json({ error: "La contraseña es demasiado larga" });
